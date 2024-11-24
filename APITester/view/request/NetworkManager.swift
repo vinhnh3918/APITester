@@ -35,8 +35,20 @@ class NetworkManager: ObservableObject {
             Session.default.sessionConfiguration.connectionProxyDictionary = proxy
         }
         
+        // If parameters are provided, make sure they are serialized correctly (e.g., for JSON)
+        var serializedParameters: Parameters? = parameters
+        
+        // If the parameters contain complex objects, serialize them as JSON
+        if let parameters = parameters {
+            // Example: Check if parameters should be JSON encoded
+            if let jsonData = try? JSONSerialization.data(withJSONObject: parameters, options: []),
+               let jsonDict = try? JSONSerialization.jsonObject(with: jsonData, options: []) as? [String: Any] {
+                serializedParameters = jsonDict
+            }
+        }
+        
         // Make the request
-        AF.request(url, method: method, parameters: parameters, headers: headers)
+        AF.request(url, method: method, parameters: serializedParameters, headers: headers)
             .response { response in
                 DispatchQueue.main.async {
                     switch response.result {
